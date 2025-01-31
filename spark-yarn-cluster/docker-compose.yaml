@@ -1,0 +1,101 @@
+version: '3.9'
+
+services:
+  # hdfs master
+  namenode:
+    image: hadoop-base
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870" # namenode UI
+      - "9000:9000" # RPC (communicate datanode, spark)
+    volumes:
+      - ./namenode:/hadoop/dfs/name
+    # background에서 container 유지
+    command: bash -c "hdfs namenode -format && hdfs namenode"
+
+  # hdfs worker
+  datanode:
+    image: hadoop-base
+    container_name: datanode
+    hostname: datanode
+    ports:
+      - "9864:9864" # datanode UI & communicate spark(read,save)
+    depends_on:
+      - namenode
+    volumes:
+      - ./datanode:/hadoop/dfs/data
+    command: hdfs datanode
+
+  # yarn master
+  resourcemanager:
+    image: hadoop-base
+    container_name: resourcemanager
+    hostname: resourcemanager
+    ports:
+      - "8088:8088" # resourcemanager UI
+      - "8032:8032" # RPC (spark-submit)
+    depends_on:
+      - namenode
+    command: yarn resourcemanager
+    
+  # yarn worker
+  nodemanager:
+    image: hadoop-base
+    container_name: nodemanager
+    hostname: nodemanager
+    ports:
+      - "8042:8042" # spark executor
+    depends_on:
+      - resourcemanager
+    command: yarn nodemanager
+
+  # spark master
+  spark-master:
+    image: spark-base
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - "8080:8080" # spark master web UI
+      - "7077:7077" # RPC (communicate worker, client)
+    volumes:
+      - ./workspace:/opt/workspace
+    command: start-master.sh
+
+  # spark worker
+  spark-worker-1:
+    image: spark-base
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    ports:
+      - "8081:8081"
+    depends_on:
+      - spark-master
+    volumes:
+      - ./workspace:/opt/workspace
+    command: start-worker.sh spark://spark-master:7077 -c 2 -m 4g
+
+  spark-worker-2:
+    image: spark-base
+    container_name: spark-worker-2
+    hostname: spark-worker-2
+    ports:
+      - "8082:8081"
+    depends_on:
+      - spark-master
+    volumes:
+      - ./workspace:/opt/workspace
+    command: start-worker.sh spark://spark-master:7077 -c 2 -m 4g
+    
+
+  # jupyter
+  jupyterlab:
+    image: jupyterlab
+    container_name: jupyterlab
+    hostname: jupyterlab
+    ports:
+      - 8888:8888
+    depends_on:
+      - spark-master
+    volumes:
+      - ./workspace:/opt/workspace
