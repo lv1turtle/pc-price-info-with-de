@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: hostpath-dags-pv
+  name: hostpath-pv
 spec:
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /c/Users/skqlt/Desktop/develop/pc-price-info-with-de/dags # local directory
+    path: /c/Users/skqlt/Desktop/develop/pc-price-info-with-de/mount # local directory
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: airflow-dags-pvc
+  name: airflow-pvc
   namespace: airflow
 spec:
   accessModes:
@@ -21,4 +21,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  volumeName: hostpath-dags-pv
+  volumeName: hostpath-pv

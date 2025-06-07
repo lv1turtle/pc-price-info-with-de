@@ -9,21 +9,20 @@ airflow:
     AIRFLOW__CORE__LOAD_EXAMPLES: "False"
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "True" # 작업 종료시 worker pod 삭제
 
-  users:
-    - username: {{ .Values.myuser }}
-      password: {{ .Values.mypassword }}
-      role: Admin
-
 webserver:
   service:
-    type: ClusterIP
     port: 8080
+    
+  defaultUser:
+    enabled: true
+    username: admin
+    password: "{{ .Values.webserver.defaultUser.password }}"
 
 dags:
   persistence:
     enabled: true # 로컬 DAG 폴더를 PVC로 마운트
-    existingClaim: airflow-dags-pvc  # pvc 지정
-    path: /opt/airflow/dags
+    existingClaim: airflow-pvc  # pvc 지정
+    path: /opt/airflow/
 
 logs:
   persistence:
