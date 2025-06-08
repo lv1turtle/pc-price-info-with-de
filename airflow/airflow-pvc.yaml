@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /c/Users/skqlt/Desktop/develop/pc-price-info-with-de/mount # local directory
+    path: /mnt/shared # minikube's shared directory
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

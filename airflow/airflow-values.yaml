@@ -10,9 +10,6 @@ airflow:
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "True" # 작업 종료시 worker pod 삭제
 
 webserver:
-  service:
-    port: 8080
-    
   defaultUser:
     enabled: true
     username: admin
@@ -22,7 +19,6 @@ dags:
   persistence:
     enabled: true # 로컬 DAG 폴더를 PVC로 마운트
     existingClaim: airflow-pvc  # pvc 지정
-    path: /opt/airflow/
 
 logs:
   persistence:
@@ -30,12 +26,9 @@ logs:
 
 postgresql:
   enabled: true
-  postgresqlUsername: airflow
-  postgresqlPassword: airflow
-  postgresqlDatabase: airflow
+  auth:
+    postgresPassword: "{{ .Values.postgresql.password }}"
+
 
 redis:
   enabled: true
-
-workers:
-  enabled: false  # KubernetesExecutor에서는 worker Pod를 별도로 띄우지 않음
