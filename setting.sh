@@ -22,18 +22,23 @@ kubectl create namespace airflow
 
 # minkube 내로 dag 및 data 전송
 tar -czf shared.tar.gz -C ./shared .
-minikube cp shared.tar.gz /opt/shared.tar.gz
-minikube ssh -- "tar -xzf /opt/shared.tar.gz -C /opt && rm /opt/shared.tar.gz"
-rm shared.tar.gz
+minikube cp shared.tar.gz minikube:/opt/airflow/shared.tar.gz
+minikube ssh -- "sudo tar -xzf /opt/airflow/shared.tar.gz -C /opt/airflow && sudo rm -f /opt/airflow/shared.tar.gz"
+rm -f shared.tar.gz
 
 
-# pvc 등록
+# pv, pvc 등록
+kubectl apply -f airflow/airflow-pv.yaml
 kubectl apply -f airflow/airflow-pvc.yaml
 
 helm install airflow apache-airflow/airflow \
   -n airflow \
   -f airflow/airflow-values.yaml \
   -f airflow/secrets.yaml
+
+# helm 수정 시 재배포
+helm upgrade airflow apache-airflow/airflow -f airflow/airflow-values.yaml -n airflow
+
 
 # install 실패시 삭제
 # helm uninstall airflow -n airflow

@@ -1,0 +1,32 @@
+executor: KubernetesExecutor
+
+airflow:
+  image:
+    repository: apache/airflow
+    tag: 2.10.5
+
+  config:
+    AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "True" # 작업 종료시 worker pod 삭제
+
+webserver:
+  defaultUser:
+    enabled: true
+    username: admin
+    password: admin
+
+dags:
+  persistence:
+    enabled: true # 로컬 DAG 폴더를 PVC로 마운트
+    existingClaim: airflow-pvc  # pvc 지정
+
+logs:
+  persistence:
+    enabled: false # pod 종료 시 log 삭제됨
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: airflow
+redis:
+  enabled: true
