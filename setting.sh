@@ -31,21 +31,26 @@ rm -f shared.tar.gz
 kubectl apply -f airflow/airflow-pv.yaml
 kubectl apply -f airflow/airflow-pvc.yaml
 
-helm install airflow apache-airflow/airflow \
+# helm 재배포
+helm upgrade --install airflow apache-airflow/airflow \
+  -f airflow/values.yaml \
   -n airflow \
-  -f airflow/airflow-values.yaml \
-  -f airflow/secrets.yaml
-
-# helm 수정 시 재배포
-helm upgrade airflow apache-airflow/airflow -f airflow/airflow-values.yaml -n airflow
-
+  --debug
 
 # install 실패시 삭제
 # helm uninstall airflow -n airflow
 
 # check status
+helm ls -n airflow
 kubectl get pods -n airflow
 kubectl get pvc -n airflow
+kubectl get svc -n airflow
+
+# postgresql bash
+# kubectl exec -it airflow-postgresql-0 -n airflow -- bash
+# psql -U <username> -d <database> -h localhost -p 5432
+
+# airflow webserver portforwarding
 kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
 
 #--------------------------------------------------------------
