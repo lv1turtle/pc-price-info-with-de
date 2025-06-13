@@ -13,6 +13,11 @@ minikube image load my-spark:latest
 #----------------------------------------------------
 # Airflow (1) : install
 
+
+docker build -t my-airflow-custom ./airflow
+
+minikube image load my-airflow-custom:latest
+
 # After install helm
 helm repo add apache-airflow https://airflow.apache.org
 helm repo update

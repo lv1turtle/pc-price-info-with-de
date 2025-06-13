@@ -1,26 +1,26 @@
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from datetime import datetime
-from airflow.kubernetes.volume import Volume
-from airflow.kubernetes.volume_mount import VolumeMount
+from airflow.providers.cncf.kubernetes.volume import Volume
+from airflow.providers.cncf.kubernetes.volume_mount import VolumeMount
 
 # Volume 정의
-#volume = Volume(
-#    name='shared-volume',
-#    configs={
-#        'persistentVolumeClaim': {
-#            'claimName': 'airflow-pvc'
-#        }
-#    }
-#)
+volume = Volume(
+    name='shared-volume',
+    configs={
+        'persistentVolumeClaim': {
+            'claimName': 'airflow-pvc'
+        }
+    }
+)
 
 # VolumeMount 정의
-#volume_mount = VolumeMount(
-#    name='shared-volume',
-#    mount_path='/opt/spark/',
-#    sub_path=None,
-#    read_only=False
-#)
+volume_mount = VolumeMount(
+    name='shared-volume',
+    mount_path='/opt/spark/',
+    sub_path=None,
+    read_only=False
+)
 
 # DAG 정의
 with DAG(
@@ -43,8 +43,8 @@ with DAG(
             "--conf", "spark.kubernetes.container.image=my-spark:latest",
             "local:///opt/spark/jobs/wordcount_example.py"
         ],
-        #volumes=[volume],
-        #volume_mounts=[volume_mount],
+        volumes=[volume],
+        volume_mounts=[volume_mount],
         get_logs=True,
         is_delete_operator_pod=True,
     )
