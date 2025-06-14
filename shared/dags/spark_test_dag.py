@@ -1,50 +1,46 @@
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from datetime import datetime
-from airflow.providers.cncf.kubernetes.volume import Volume
-from airflow.providers.cncf.kubernetes.volume_mount import VolumeMount
+from kubernetes.client.models import V1Volume, V1VolumeMount, V1PersistentVolumeClaimVolumeSource
+from airflow.utils.dates import days_ago
 
-# Volume 정의
-volume = Volume(
-    name='shared-volume',
-    configs={
-        'persistentVolumeClaim': {
-            'claimName': 'airflow-pvc'
-        }
-    }
+volume = V1Volume(
+    name="airflow-pvc",
+    persistent_volume_claim=V1PersistentVolumeClaimVolumeSource(claim_name="airflow-pvc")
 )
-
-# VolumeMount 정의
-volume_mount = VolumeMount(
-    name='shared-volume',
-    mount_path='/opt/spark/',
+volume_mount = V1VolumeMount(
+    name="airflow-pvc",
+    mount_path="/opt/bitnami/spark/shared",
     sub_path=None,
     read_only=False
 )
 
-# DAG 정의
+# Default DAG arguments
+default_args = {
+    'start_date': days_ago(1) # 실행 시작 일을 어제로 지정
+}
+
+# Define the DAG
 with DAG(
     dag_id="spark_test_dag",
-    start_date=datetime(2025, 6, 7),
+    default_args=default_args,
     schedule_interval=None,
-    catchup=False,
-    tags=["spark", "k8s"],
+    catchup=False
 ) as dag:
-
-    spark_submit = KubernetesPodOperator(
-        task_id="spark_test_task",
-        name="spark-submit",
-        namespace="airflow",
-        image="my-spark:latest",
-        cmds=["/opt/spark/bin/spark-submit"],
+    spark_task = KubernetesPodOperator(
+        task_id="spark_submit_job",
+        name="spark-test",            # Pod name
+        namespace="airflow",          # Kubernetes namespace to launch pod in
+        image="my-spark:latest",      # Spark image
+        cmds=["/opt/bitnami/spark/bin/spark-submit"],
         arguments=[
             "--master", "k8s://https://kubernetes.default.svc:443",
             "--deploy-mode", "cluster",
-            "--conf", "spark.kubernetes.container.image=my-spark:latest",
             "local:///opt/spark/jobs/wordcount_example.py"
         ],
         volumes=[volume],
         volume_mounts=[volume_mount],
+        in_cluster=True, # k8s 내부에서 실행
+        is_delete_operator_pod=False,
         get_logs=True,
-        is_delete_operator_pod=True,
+        image_pull_policy='IfNotPresent' #  Minikube 내부에 이미지가 있을 경우 다시 pull하지 않고 바로 사용
     )

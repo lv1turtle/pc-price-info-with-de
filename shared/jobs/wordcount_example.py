@@ -6,7 +6,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 # 입력 파일 경로
-input_path = "/opt/spark/data/input.txt"
+input_path = "/opt/bitnami/spark/shared/data/input.txt"
 
 # 파일 읽기
 text_rdd = spark.sparkContext.textFile(input_path)
@@ -17,7 +17,7 @@ word_counts = text_rdd.flatMap(lambda line: line.split()) \
                       .reduceByKey(lambda a, b: a + b)
 
 # 결과 출력
-word_counts.collect()
+print(word_counts.collect())
 
 # 종료
 spark.stop()

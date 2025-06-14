@@ -51,6 +51,12 @@ kubectl get pods -n airflow
 kubectl get pvc -n airflow
 kubectl get svc -n airflow
 
+# pod 제거
+# kubectl delete pod <pod-name> -n airflow
+
+# pod log 확인
+# kubectl describe pod <pod-name> -n airflow
+
 # postgresql bash
 # kubectl exec -it airflow-postgresql-0 -n airflow -- bash
 # psql -U <username> -d <database> -h localhost -p 5432
